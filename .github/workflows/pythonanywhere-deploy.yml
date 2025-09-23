@@ -17,7 +17,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Deploy to PythonAnywhere
-        uses: a-h/ssh-action@v1
+        uses: appleboy/ssh-action@v1.0.3
         with:
           # We use the API token as the password for SSH, as supported by PythonAnywhere.
           host: ssh.pythonanywhere.com
