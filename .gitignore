@@ -1,45 +1,130 @@
-# Python
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
-*.pyo
-*.pyd
+
+# C extensions
 *.so
-*.dll
-*.egg-info/
-.eggs/
-build/
-dist/
+
+# Distribution / packaging
 .Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Flask stuff:
+instance/
+.webassets-cache
+
+# Scrapy stuff:
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+target/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+.python-version
+
+# PEP 582; used by PDM, PEP 582 compatible tools
+__pypackages__/
+
+# Celery stuff
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.env
+.venv
 env/
 venv/
-.venv/
 ENV/
 env.bak/
-pip-wheel-metadata/
-*.log
+venv.bak/
 
-# OS / Editors
-.DS_Store
-Thumbs.db
-desktop.ini
-.vscode/
+# IDE-specific
 .idea/
-*.code-workspace
+.vscode/
 
-# Environment & secrets
-.env
-NID_KEY.txt
+# Custom files to ignore
+# Sensitive credentials
 credentials_oauth.json
-credentials_local.json
-# Keep the template for documentation/bootstrapping
-# credentials_oauth_template.json (tracked)
+api python.txt
 
-# Project artifacts
-pythonanywhere_upload.zip
-checkpoint-*.zip
-/tmp/
-tmp/
+# Temporary or sample files
+sample_batch.csv
+tmp_send_batch.py
 
-# Node (if ever added)
-node_modules/
+# Old requirements files
+requirements_memory_optimized.txt
+requirements_pythonanywhere.txt
+
+# Old markdown notes
+DEPLOY_PYTHONANYWHERE.md
+DEPLOY_TONGTONGTONG_MEMORY_SAFE.md
+DEPLOY_TONGTONGTONG_OAUTH_FIXED.md
+OAUTH_SETUP_GUIDE.md
+PANDAS_ERROR_FIX.md
+PYTHON310_FIX_GUIDE.md
+SCOPE_MISMATCH_FIX.md

@@ -5,6 +5,35 @@ Trang QR Generator (`/qr`) là một công cụ tạo mã QR với nhiều chứ
 
 ## Sơ đồ Kiến trúc
 
+## Hệ thống và Triển khai (System & Deployment)
+
+### Tổng quan
+Hệ thống được thiết lập để tự động triển khai (CI/CD) từ GitHub đến PythonAnywhere mỗi khi có commit mới vào nhánh `main`.
+
+### Quy trình CI/CD với GitHub Actions
+1.  **Trigger**: `push` đến nhánh `main`.
+2.  **Job `deploy-to-pythonanywhere`**:
+    *   **Checkout code**: Lấy mã nguồn mới nhất từ repository.
+    *   **SSH vào PythonAnywhere**: Sử dụng `appleboy/ssh-action` với thông tin đăng nhập được lưu trong GitHub Secrets (`PA_USERNAME`, `PA_API_TOKEN`).
+    *   **Điều hướng đến thư mục dự án**: `cd ~/tongtongong.pythonanywhere.com`.
+    *   **Kéo code mới nhất**: `git pull`.
+    *   **Tạo/Kích hoạt Môi trường ảo**:
+        *   Kiểm tra sự tồn tại của môi trường ảo `my-cicd-venv`.
+        *   Nếu chưa có, tạo mới bằng `python3.10 -m venv my-cicd-venv`.
+        *   Kích hoạt môi trường ảo: `source my-cicd-venv/bin/activate`.
+    *   **Cài đặt Dependencies**:
+        *   Cài đặt các thư viện từ `requirements.txt` vào môi trường ảo.
+        *   Sử dụng cờ `--no-cache-dir` để tránh làm đầy bộ nhớ cache trên PythonAnywhere.
+    *   **Reload Web App**: Gửi yêu cầu POST đến API của PythonAnywhere để tải lại ứng dụng web, áp dụng các thay đổi mới.
+
+### Quản lý Dependencies
+- Tất cả các thư viện Python cần thiết cho dự án được quản lý trong một file duy nhất: `requirements.txt`.
+- Việc cài đặt được thực hiện trong một môi trường ảo (`my-cicd-venv`) để tránh xung đột và các vấn đề về bộ nhớ với hệ thống global của PythonAnywhere.
+
+### Dọn dẹp và Tối ưu
+- **`.gitignore`**: File `.gitignore` được cấu hình để bỏ qua các file không cần thiết (file credentials, file tạm, file cấu hình local, các file markdown ghi chú cá nhân) khỏi repository.
+- **Dọn dẹp lịch sử**: Các file nhạy cảm hoặc không cần thiết đã được đẩy lên GitHub sẽ được xóa khỏi lịch sử Git để giữ cho repository sạch sẽ và an toàn.
+
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                        TRANG QR GENERATOR                       │
