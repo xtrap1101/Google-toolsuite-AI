@@ -1,0 +1,322 @@
+/* Main CSS for Google Tools Suite */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    color: #333;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Navigation Bar */
+.navbar {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    padding: 15px 30px;
+    margin-bottom: 30px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-brand {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #667eea;
+    text-decoration: none;
+}
+
+.navbar-nav {
+    display: flex;
+    flex-direction: row; /* ensure horizontal layout even with Bootstrap */
+    list-style: none;
+    gap: 20px;
+    align-items: center;
+}
+
+.nav-link {
+    color: #333;
+    text-decoration: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    transition: all 3s ease;
+}
+
+.nav-link:hover {
+    background: #667eea;
+    color: white;
+    text-decoration: none;
+}
+
+.nav-link.active {
+    background: #667eea;
+    color: white;
+}
+
+/* Header */
+.header {
+    text-align: center;
+    color: white;
+}
+
+.header h1 {
+    font-size: 3rem;
+    margin-bottom: 10px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.header p {
+    font-size: 1.2rem;
+    opacity: 0.9;
+}
+
+/* Cards */
+.card {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+.card-header {
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+}
+
+.card-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.card-subtitle {
+    color: #666;
+    font-size: 1rem;
+}
+
+/* Buttons */
+.btn {
+    display: inline-block;
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    color: white;
+    padding: 12px 25px;
+    border-radius: 25px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    text-decoration: none;
+    color: white;
+}
+
+.btn-primary {
+    background: linear-gradient(45deg, #667eea, #764ba2);
+}
+
+.btn-success {
+    background: linear-gradient(45deg, #4CAF50, #45a049);
+}
+
+.btn-danger {
+    background: linear-gradient(45deg, #f44336, #da190b);
+}
+
+.btn-secondary {
+    background: linear-gradient(45deg, #6c757d, #5a6268);
+}
+
+/* Forms */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #333;
+}
+
+.form-control {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.form-select {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 1rem;
+    background: white;
+    cursor: pointer;
+}
+
+/* Grid System: removed to use Bootstrap's native grid utilities to avoid conflicts */
+
+/* Loading Spinner */
+.loading {
+    display: none;
+    text-align: center;
+    padding: 20px;
+}
+
+.spinner {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #667eea;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 10px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Alerts */
+.alert {
+    padding: 15px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border-left: 4px solid;
+}
+
+.alert-success {
+    background: #d4edda;
+    border-color: #28a745;
+    color: #155724;
+}
+
+.alert-danger {
+    background: #f8d7da;
+    border-color: #dc3545;
+    color: #721c24;
+}
+
+.alert-warning {
+    background: #fff3cd;
+    border-color: #ffc107;
+    color: #856404;
+}
+
+.alert-info {
+    background: #d1ecf1;
+    border-color: #17a2b8;
+    color: #0c5460;
+}
+
+/* Tables */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+.table th,
+.table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.table th {
+    background: #f8f9fa;
+    font-weight: 600;
+    color: #333;
+}
+
+.table tbody tr:hover {
+    background: #f8f9fa;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .container {
+        padding: 10px;
+    }
+    
+    .header h1 {
+        font-size: 2rem;
+    }
+    
+    .navbar {
+        padding: 10px 15px;
+    }
+    
+    .navbar-nav {
+        flex-direction: row;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    
+    .col-md-6,
+    .col-md-4,
+    .col-md-8 {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+    
+    .card {
+        padding: 20px;
+    }
+}
+
+/* Utility Classes */
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+
+.mt-1 { margin-top: 0.25rem; }
+.mt-2 { margin-top: 0.5rem; }
+.mt-3 { margin-top: 1rem; }
+.mt-4 { margin-top: 1.5rem; }
+.mt-5 { margin-top: 3rem; }
+
+.mb-1 { margin-bottom: 0.25rem; }
+.mb-2 { margin-bottom: 0.5rem; }
+.mb-3 { margin-bottom: 1rem; }
+.mb-4 { margin-bottom: 1.5rem; }
+.mb-5 { margin-bottom: 3rem; }
+
+.p-1 { padding: 0.25rem; }
+.p-2 { padding: 0.5rem; }
+.p-3 { padding: 1rem; }
+.p-4 { padding: 1.5rem; }
+.p-5 { padding: 3rem; }
+
+.d-none { display: none; }
+.d-block { display: block; }
+.d-flex { display: flex; }
+.d-inline-block { display: inline-block; }

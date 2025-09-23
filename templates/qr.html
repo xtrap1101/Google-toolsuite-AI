@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Generator - Tạo mã QR</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .qr-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 20px 0;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .qr-options {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 60px 0;
+        }
+        .card {
+            border: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+        }
+        .qr-preview {
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .qr-list-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .qr-list {
+            max-height: 400px;
+            overflow-y: auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            padding: 10px;
+        }
+        .qr-list-item {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        .qr-list-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+        .qr-list-item img {
+            width: 120px;
+            height: 120px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+        }
+        .qr-list-item .qr-text {
+            font-size: 12px;
+            color: white;
+            margin-bottom: 10px;
+            word-wrap: break-word;
+            max-height: 40px;
+            overflow: hidden;
+        }
+        .paper-preview-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .paper-preview {
+            max-height: 600px;
+            overflow-y: auto;
+            text-align: center;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .qr-grid {
+            display: grid;
+            gap: 15px;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .qr-item {
+            text-align: center;
+            padding: 15px;
+            border: 2px dashed #dee2e6;
+            border-radius: 10px;
+            background: #f8f9fa;
+        }
+        .qr-item img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+        .qr-text {
+            color: white;
+            margin-top: 10px;
+            font-size: 12px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            hyphens: auto;
+            max-width: 100%;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .spinner-border {
+            color: #667eea;
+        }
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .print-area, .print-area * {
+                visibility: visible;
+            }
+            .print-area {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        .form-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        /* Layout tối ưu cho PC Desktop - Không responsive */
+        .qr-row {
+            display: flex;
+            gap: 2rem;
+            min-height: 100vh;
+            padding: 1rem;
+            --bs-gutter-x: 0 !important;
+        }
+        
+        /* Cột trái - Form tạo QR (35% màn hình) */
+        .input-panel {
+            flex: 0 0 35%;
+            max-width: 35%;
+            min-width: 400px; /* Đảm bảo form không bị quá nhỏ */
+        }
+        
+        /* Cột phải - Preview (65% màn hình) */
+        .preview-section {
+            flex: 1;
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 1.5rem;
+            max-height: 100vh;
+            overflow-y: auto;
+            min-width: 600px; /* Đảm bảo preview có đủ không gian */
+        }
+        
+        .preview-section h4 {
+            color: #0d6efd;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+        }
+        
+        .preview-section h6 {
+            color: #495057;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+        
+        /* Các section trong preview - Tối ưu cho màn hình lớn */
+        .qr-section, .print-section {
+            margin-bottom: 2rem;
+            background: white;
+            border-radius: 6px;
+            padding: 1.5rem;
+            border: 1px solid #dee2e6;
+        }
+        
+        .qr-codes-list, .print-preview {
+            max-height: 400px; /* Tăng chiều cao cho màn hình lớn */
+            overflow-y: auto;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 1rem;
+            background: #ffffff;
+        }
+        
+        /* Print preview luôn hiển thị với tỷ lệ A3 */
+        .print-preview {
+            width: 100%;
+            aspect-ratio: 297 / 420; /* Tỷ lệ A3 (297mm x 420mm) */
+            max-height: 500px; /* Giới hạn chiều cao để vừa màn hình */
+        }
+        
+        .print-button-section {
+            margin-top: 1.5rem;
+        }
+        
+        /* Tối ưu cho màn hình rộng (>1400px) */
+        @media (min-width: 1400px) {
+            .qr-row {
+                gap: 3rem;
+                padding: 2rem;
+            }
+            
+            .qr-codes-list, .print-preview {
+                max-height: 500px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Navigation Bar -->
+        {% set active_page = 'qr' %}
+        {% include 'navbar.html' %}
+
+        <!-- Header -->
+        <div class="header text-center">
+            <h1><i class="fas fa-qrcode"></i> QR Code Generator</h1>    
+        </div>
+
+        <!-- Alert Container -->
+        <div id="alerts"></div>
+        <div class="row align-items-start qr-row">
+            <!-- Input Panel -->
+            <div class="input-panel">
+                <div class="card">
+                    <div class="card-header text-white" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">
+                        <h4 class="mb-0 fs-4">
+                            <i class="fas fa-qrcode me-2"></i>
+                            Tạo mã QR
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <!-- Batch QR Input -->
+                        <div class="mb-5 p-3 border rounded bg-light">
+                            <div class="mb-3">
+                                <label for="batchText" class="form-label fs-5">Danh sách nội dung</label>
+                                <textarea class="form-control fs-6" id="batchText" rows="5" 
+                                         placeholder="Mỗi dòng một nội dung:&#10;https://example1.com&#10;https://example2.com&#10;Văn bản 1&#10;Văn bản 2"></textarea>
+                                <div class="form-text fs-6">Mỗi dòng sẽ tạo một mã QR riêng</div>
+                            </div>
+                                
+                                <!-- Collapsible Print Settings -->
+                                <div class="mt-3">
+                                    <button class="btn btn-outline-info w-100 collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#printSettings" aria-expanded="false" aria-controls="printSettings">
+                                        <i class="fas fa-print me-2"></i>Cài đặt in QR
+                                        <i class="fas fa-chevron-down float-end mt-1"></i>
+                                    </button>
+                                    <div class="collapse mt-3" id="printSettings">
+                                        <div class="card card-body">
+                                            <div class="mb-3">
+                                                <label for="paperSize" class="form-label fs-5">Kích thước giấy</label>
+                                                <select class="form-select fs-6" id="paperSize" onchange="updateLayout()">
+                                                    <option value="a4">A4 (210 x 297 mm)</option>
+                                                    <option value="a3">A3 (297 x 420 mm)</option>
+                                                    <option value="a5">A5 (148 x 210 mm)</option>
+                                                    <option value="letter">Letter (216 x 279 mm)</option>
+                                                    <option value="custom">Custom</option>
+                                                </select>
+                                            </div>
+
+                                            <div id="customSizeInputs" style="display: none;">
+                                                <div class="row">
+                                                    <div class="col-6">
+                                                        <label for="customWidth" class="form-label fs-6">Chiều rộng (mm)</label>
+                                                        <input type="number" class="form-control fs-6" id="customWidth" value="60" min="50" max="1000" onchange="updateLayout()">
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <label for="customHeight" class="form-label fs-6">Chiều cao (mm)</label>
+                                                        <input type="number" class="form-control fs-6" id="customHeight" value="40" min="50" max="1000" onchange="updateLayout()">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <label for="textSize" class="form-label fs-5">Kích thước chữ (pt)</label>
+                                                <input type="number" class="form-control fs-6" id="textSize" value="9" min="1" max="100" onchange="updateLayout()" placeholder="Nhập kích thước chữ (1-100pt)">
+                                                <div class="form-text fs-6" id="textSizeHelp">Kích thước chữ sẽ tự động điều chỉnh phù hợp với kích thước QR (1pt-100pt)</div>
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="boldText" onchange="updateLayout()">
+                                                    <label class="form-check-label fs-6" for="boldText">
+                                                        In đậm chữ
+                                                    </label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="hideText" onchange="updateLayout()">
+                                                    <label class="form-check-label fs-6" for="hideText">
+                                                        Ẩn chữ (chỉ hiển thị QR code)
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="columns" class="form-label">Số cột</label>
+                                                <input type="number" class="form-control" id="columns" value="2" min="1" max="10" onchange="updateLayout()" placeholder="Nhập số cột (1-10)">
+                                                <div class="form-text">Nhập số từ 1 đến 10 cột</div>
+                                            </div>
+                                            
+                                            <!-- Auto Calculate QR Size - Always Enabled -->
+                                            <div class="mb-3 p-2 border rounded bg-primary bg-opacity-10">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="autoCalculateSize" checked disabled>
+                                                    <label class="form-check-label fs-6" for="autoCalculateSize">
+                                                        <strong>Tự động tính kích thước QR</strong>
+                                                    </label>
+                                                </div>
+                                                <div class="form-text fs-6">Tự động tính kích thước QR dựa trên kích thước giấy và số cột</div>
+                                                <div id="calculatedSize" class="mt-2 text-success fw-bold">
+                                                    Kích thước QR được tính: <span id="calculatedSizeValue">200</span>px
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-primary w-100 fs-5 py-2" onclick="generateBatchQR()">
+                                Tạo QR hàng loạt
+                            </button>
+                        </div>
+
+                        <hr class="my-4" style="border-width: 2px;">
+
+                        <!-- Excel Upload -->
+                        <div class="mb-5 p-3 border rounded bg-light">
+                            <h5 class="fw-bold text-success mb-3">📊 Xử lý Excel</h5>
+                            <div class="mb-3">
+                                <input type="file" class="form-control fs-6" id="excelFile" accept=".xlsx,.xls,.csv">
+                                <div class="form-text fs-6">Chọn file Excel với dữ liệu ở cột A</div>
+                            </div>
+                            <button type="button" class="btn btn-success w-100 fs-5 py-2" onclick="processExcelFile()">
+                                Xử lý Excel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            <!-- Preview Panel - Di chuyển vào trong row -->
+            <div class="preview-section">
+                <h4><i class="fas fa-eye me-2"></i>Xem trước</h4>
+                
+                <div id="loadingSpinner" class="text-center" style="display: none;">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Đang tạo...</span>
+                    </div>
+                    <p class="mt-2">Đang tạo QR code...</p>
+                </div>
+
+                <!-- Danh sách QR Codes -->
+                <div class="qr-section">
+                    <h6>Danh sách QR Codes</h6>
+                    <div id="qrList" class="qr-codes-list">
+                        <!-- QR codes sẽ hiển thị ở đây -->
+                    </div>
+                </div>
+
+                <!-- Xem trước trang in -->
+                <div class="print-section">
+                    <h6>Xem trước trang in</h6>
+                    <div id="qrPreview" class="print-preview">
+                        <!-- Xem trước trang in sẽ hiển thị ở đây -->
+                    </div>
+                </div>
+
+                <div class="print-button-section">
+                    <button id="printBtn" class="btn btn-success btn-lg w-100" onclick="printQRCodes()" disabled title="Vui lòng tạo QR trước">
+                        <i class="fas fa-print me-2"></i> In QR Codes
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+        let qrCodes = [];
+
+        function showLoading() {
+            document.getElementById('loadingSpinner').style.display = 'block';
+            document.getElementById('qrPreview').style.display = 'none';
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingSpinner').style.display = 'none';
+            document.getElementById('qrPreview').style.display = 'block';
+        }
+
+        function generateSingleQR() {
+            const text = document.getElementById('singleText').value.trim();
+            const size = document.getElementById('qrSize').value;
+
+            if (!text) {
+                alert('Vui lòng nhập nội dung để tạo QR code');
+                return;
+            }
+
+            showLoading();
+
+            fetch('/qr', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    text: text,
+                    qr_size: parseInt(size)
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideLoading();
+                if (data.success) {
+                    displaySingleQR(data);
+                } else {
+                    alert('Lỗi: ' + data.error);
+                }
+            })
+            .catch(error => {
+                hideLoading();
+                console.error('Error:', error);
+                alert('Có lỗi xảy ra khi tạo QR code');
+            });
+        }
+
+        function displaySingleQR(data) {
+            displayQRList([data]);
+            qrCodes = [data];
+            updatePaperPreview();
+        }
+
+        function generateBatchQR() {
+            const text = document.getElementById('batchText').value.trim();
+            // Lấy kích thước QR từ giá trị đã tính tự động
+            const calculatedSizeElement = document.getElementById('calculatedSizeValue');
+            const size = calculatedSizeElement ? parseFloat(calculatedSizeElement.textContent) || 200 : 200;
+
+            if (!text) {
+                alert('Vui lòng nhập danh sách nội dung');
+                return;
+            }
+
+            const lines = text.split('\n').filter(line => line.trim());
+            if (lines.length === 0) {
+                alert('Không có nội dung hợp lệ');
+                return;
+            }
+
+            showLoading();
+            qrCodes = [];
+
+            Promise.all(lines.map(line => 
+                fetch('/qr', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        text: line.trim(),
+                        qr_size: parseInt(size)
+                    })
+                })
+                .then(response => response.json())
+                .catch(err => ({ success: false, error: err && err.message ? err.message : 'Request failed' }))
+            ))
+            .then(results => {
+                hideLoading();
+                const successResults = results.filter(r => r.success);
+                if (successResults.length > 0) {
+                    displayBatchQR(successResults);
+                    qrCodes = successResults;
+                    updateLayout();
+                } else {
+                    alert('Không thể tạo QR code nào');
+                }
+            })
+            .catch(error => {
+                hideLoading();
+                console.error('Error:', error);
+                alert('Có lỗi xảy ra khi tạo QR codes');
+            });
+        }
+
+        function displayBatchQR(qrData) {
+            displayQRList(qrData);
+            qrCodes = qrData;
+            updatePaperPreview();
+        }
+
+        function displayQRList(qrData) {
+            const qrList = document.getElementById('qrList');
+            qrList.innerHTML = '';
+
+            qrData.forEach((qr, index) => {
+                const qrItem = document.createElement('div');
+                qrItem.className = 'qr-list-item';
+                
+                qrItem.innerHTML = `
+                    <img src="${qr.qr_url || qr.url}" alt="QR Code ${index + 1}">
+                    <div class="qr-text" title="${qr.text}">${qr.text}</div>
+                    <button class="btn btn-outline-light btn-sm" onclick="downloadQR('${qr.qr_url || qr.url}', '${qr.text}')">
+                        <i class="fas fa-download"></i> Tải xuống
+                    </button>
+                `;
+                
+                qrList.appendChild(qrItem);
+            });
+
+            // Xóa dòng lỗi vì qrListContainer không tồn tại trong layout mới
+            // document.getElementById('qrListContainer').style.display = 'block';
+        }
+
+        function processExcelFile() {
+            const fileInput = document.getElementById('excelFile');
+            const file = fileInput.files[0];
+            const size = document.getElementById('qrSize').value;
+
+            if (!file) {
+                alert('Vui lòng chọn file Excel');
+                return;
+            }
+
+            showLoading();
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('qr_size', size);
+
+            fetch('/qr/excel', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideLoading();
+                if (data.success) {
+                    displayBatchQR(data.qr_codes);
+                    qrCodes = data.qr_codes;
+                    updateLayout();
+                    alert(data.message);
+                } else {
+                    alert('Lỗi: ' + data.error);
+                }
+            })
+            .catch(error => {
+                hideLoading();
+                console.error('Error:', error);
+                alert('Có lỗi xảy ra khi xử lý file Excel');
+            });
+        }
+
+        function calculateOptimalTextSize() {
+            // Lấy kích thước QR từ giá trị đã tính tự động
+            const qrSizePx = parseFloat(document.getElementById('calculatedSizeValue').textContent) || 200;
+            
+            // Chuyển đổi từ px sang mm (1px ≈ 0.264mm)
+            const qrSizeMm = qrSizePx * 0.264;
+            
+            // Tính kích thước chữ để độ dài chữ bằng với QR
+            // Công thức: kích thước chữ = 15-20% kích thước QR để chữ vừa khít với QR
+            // Chuyển đổi từ mm sang pt (1mm ≈ 2.83pt)
+            let optimalTextSizeMm = Math.round((qrSizeMm * 0.18) * 10) / 10; // 18% và làm tròn 1 chữ số thập phân
+            optimalTextSizeMm = Math.max(2, Math.min(8, optimalTextSizeMm));
+            
+            // Chuyển đổi từ mm sang pt
+            let optimalTextSizePt = Math.round(optimalTextSizeMm * 2.83);
+            optimalTextSizePt = Math.max(6, Math.min(72, optimalTextSizePt)); // Giới hạn từ 6pt đến 72pt
+            
+            // Cập nhật giá trị input
+            document.getElementById('textSize').value = optimalTextSizePt;
+            
+            return optimalTextSizePt;
+        }
+
+        function updateLayout() {
+            validateInputs();
+            
+            // Hiển thị/ẩn custom size inputs ngay khi thay đổi paper size
+            const paperSize = document.getElementById('paperSize').value;
+            const customInputs = document.getElementById('customSizeInputs');
+            if (paperSize === 'custom') {
+                customInputs.style.display = 'block';
+            } else {
+                customInputs.style.display = 'none';
+            }
+            
+            calculateOptimalQRSize(); // Luôn tính kích thước QR tự động
+            // calculateOptimalTextSize(); // Bỏ tự động điều chỉnh kích thước chữ - cho phép user tùy chỉnh
+            updatePaperPreview();
+        }
+
+        function calculateOptimalQRSize() {
+            const paperSize = document.getElementById('paperSize').value;
+            const columns = parseInt(document.getElementById('columns').value) || 1;
+            
+            // Lấy kích thước giấy theo mm
+            let paperWidth = 210; // A4 default
+            
+            if (paperSize === 'custom') {
+                paperWidth = parseInt(document.getElementById('customWidth').value) || 210;
+            } else {
+                const paperSizes = {
+                    'a4': 210,
+                    'a3': 297,
+                    'a5': 148,
+                    'letter': 216
+                };
+                paperWidth = paperSizes[paperSize] || 210;
+            }
+            
+            // Tính toán kích thước QR tối ưu
+            // Công thức: (Chiều rộng giấy - lề tổng) / số cột - khoảng cách giữa các QR
+            const totalMargin = 20; // 10mm mỗi bên
+            const gapBetweenQR = 5; // 5mm khoảng cách giữa các QR
+            const availableWidth = paperWidth - totalMargin;
+            const qrWidthMM = (availableWidth - (gapBetweenQR * (columns - 1))) / columns;
+            
+            // Chuyển đổi từ mm sang px (1mm ≈ 3.78px ở 96 DPI)
+            const mmToPx = 3.78;
+            const qrSizePx = Math.floor(qrWidthMM * mmToPx);
+            
+            // Cập nhật giá trị hiển thị
+            const calculatedSizeValue = document.getElementById('calculatedSizeValue');
+            calculatedSizeValue.textContent = qrSizePx;
+            
+            // Hiển thị thông tin chi tiết
+            const detailText = `Giấy: ${paperWidth}mm, Cột: ${columns}, QR: ${qrWidthMM.toFixed(1)}mm (${qrSizePx}px)`;
+            calculatedSizeValue.title = detailText;
+        }
+
+        function validateInputs() {
+            const columnsInput = document.getElementById('columns');
+            let columns = parseInt(columnsInput.value);
+            if (isNaN(columns) || columns < 1) {
+                columns = 1;
+                columnsInput.value = 1;
+            } else if (columns > 10) {
+                columns = 10;
+                columnsInput.value = 10;
+            }
+        }
+
+        function validateInputs() {
+            const columnsInput = document.getElementById('columns');
+            let columns = parseInt(columnsInput.value);
+            if (isNaN(columns) || columns < 1) {
+                columns = 1;
+                columnsInput.value = 1;
+            } else if (columns > 10) {
+                columns = 10;
+                columnsInput.value = 10;
+            }
+
+            const textSizeInput = document.getElementById('textSize');
+            let textSize = parseInt(textSizeInput.value);
+            if (isNaN(textSize) || textSize < 6) {
+                textSize = 6;
+                textSizeInput.value = 6;
+            } else if (textSize > 72) {
+                textSize = 72;
+                textSizeInput.value = 72;
+            }
+        }
+
+        function updatePaperPreview() {
+            if (qrCodes.length === 0) return;
+
+            const paperSize = document.getElementById('paperSize').value;
+            const columns = parseInt(document.getElementById('columns').value);
+            const textSize = document.getElementById('textSize').value;
+            const boldText = document.getElementById('boldText').checked;
+            const hideText = document.getElementById('hideText').checked;
+            
+            const customInputs = document.getElementById('customSizeInputs');
+            if (paperSize === 'custom') {
+                customInputs.style.display = 'block';
+            } else {
+                customInputs.style.display = 'none';
+            }
+
+            const preview = document.getElementById('qrPreview');
+            preview.innerHTML = '';
+
+            const paper = document.createElement('div');
+            paper.className = 'paper-preview';
+            
+            let paperWidth, paperHeight;
+            if (paperSize === 'a4') {
+                paperWidth = 210; paperHeight = 297;
+            } else if (paperSize === 'a3') {
+                paperWidth = 297; paperHeight = 420;
+            } else if (paperSize === 'a5') {
+                paperWidth = 148; paperHeight = 210;
+            } else if (paperSize === 'letter') {
+                paperWidth = 216; paperHeight = 279;
+            } else if (paperSize === 'custom') {
+                paperWidth = parseFloat(document.getElementById('customWidth').value) || 210;
+                paperHeight = parseFloat(document.getElementById('customHeight').value) || 297;
+            } else {
+                paperWidth = 210; paperHeight = 297;
+            }
+
+            paper.style.width = `${paperWidth * 2}px`;
+            paper.style.height = `${paperHeight * 2}px`;
+            paper.style.border = '1px solid #ccc';
+            paper.style.margin = '20px auto';
+            paper.style.padding = '20px';
+            paper.style.backgroundColor = 'white';
+            paper.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
+
+            const grid = document.createElement('div');
+            grid.style.display = 'grid';
+            grid.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
+            // grid.style.gap will be set after gapMm is defined
+            grid.style.height = '100%';
+
+            // Tính toán kích thước QR dựa trên kích thước giấy và số cột
+            const pageMargin = 10; // 5mm mỗi bên cho preview
+            const gapMm = 5; // 5mm khoảng cách
+            const availableWidthMm = paperWidth - (pageMargin * 2);
+            grid.style.gap = `${gapMm * 2}px`; // Chuyển đổi mm sang px cho preview
+            const qrSizeMm = Math.max(10, (availableWidthMm - (gapMm * (columns - 1))) / columns);
+            const qrSizePx = qrSizeMm * 2; // Chuyển đổi mm sang px cho preview (1mm = 2px trong preview)
+
+            qrCodes.forEach((qr, index) => {
+                const item = document.createElement('div');
+                item.style.textAlign = 'center';
+                item.style.display = 'flex';
+                item.style.flexDirection = 'column';
+                item.style.alignItems = 'center';
+                item.style.justifyContent = 'center';
+                item.style.padding = '2px'; // Giảm padding từ 5px xuống 2px
+                item.style.boxSizing = 'border-box';
+                item.style.minHeight = '0';
+                item.style.overflow = 'hidden';
+
+                const img = document.createElement('img');
+                img.src = qr.qr_url || qr.url;
+                img.style.width = `${qrSizePx}px`;
+                img.style.height = `${qrSizePx}px`;
+                img.style.marginBottom = '1px'; // Giảm khoảng cách từ 5px xuống 1px
+                item.appendChild(img);
+
+                if (!hideText) {
+                    const text = document.createElement('div');
+                    text.textContent = qr.text;
+                    text.style.fontSize = textSize + 'pt';
+                    text.style.color = 'black';
+                    text.style.wordWrap = 'break-word';
+                    text.style.overflowWrap = 'break-word';
+                    text.style.wordBreak = 'break-word';
+                    text.style.hyphens = 'auto';
+                    text.style.textAlign = 'center';
+                    text.style.lineHeight = '1.1';
+                    text.style.overflow = 'visible';
+                    text.style.whiteSpace = 'normal';
+                    if (boldText) {
+                        text.style.fontWeight = 'bold';
+                    }
+                    item.appendChild(text);
+                }
+
+                grid.appendChild(item);
+            });
+
+            paper.appendChild(grid);
+            preview.appendChild(paper);
+
+            // Xóa các dòng lỗi vì paperPreviewContainer và printButton không tồn tại trong layout mới
+            // document.getElementById('paperPreviewContainer').style.display = 'block';
+            // document.getElementById('printButton').style.display = 'block';
+            const printBtn = document.getElementById('printBtn');
+            if (printBtn) { printBtn.disabled = false; printBtn.removeAttribute('title'); }
+        }
+
+        function printQRCodes() {
+            if (!qrCodes || qrCodes.length === 0) {
+                alert('Vui lòng tạo ít nhất một mã QR trước khi in.');
+                return;
+            }
+            const printWindow = window.open('', '_blank');
+            const paperSize = document.getElementById('paperSize').value;
+            const columns = parseInt(document.getElementById('columns').value);
+            const textSize = document.getElementById('textSize').value;
+            const boldText = document.getElementById('boldText').checked;
+            const hideText = document.getElementById('hideText').checked;
+            
+            let paperWidth, paperHeight;
+            switch(paperSize) {
+                case 'a3': paperWidth = 297; paperHeight = 420; break;
+                case 'a4': paperWidth = 210; paperHeight = 297; break;
+                case 'a5': paperWidth = 148; paperHeight = 210; break;
+                case 'letter': paperWidth = 216; paperHeight = 279; break;
+                case 'custom':
+                    paperWidth = parseInt(document.getElementById('customWidth').value) || 210;
+                    paperHeight = parseInt(document.getElementById('customHeight').value) || 297;
+                    break;
+                default: paperWidth = 210; paperHeight = 297;
+            }
+
+            // Tính toán kích thước QR cho in
+            const pageMargin = 5; // margin của trang in
+            const itemPadding = 1; // padding của mỗi item
+            const gapMm = 5; // 5mm khoảng cách
+            const availableWidthMm = paperWidth - (pageMargin * 2);
+            const qrSizeMm = Math.max(10, (availableWidthMm - (gapMm * (columns - 1))) / columns - (itemPadding * 2));
+
+            let printContent = `
+                <html>
+                <head>
+                    <title>In mã QR</title>
+                    <style>
+                        @page {
+                            size: ${paperWidth}mm ${paperHeight}mm;
+                            margin: ${pageMargin}mm;
+                        }
+                        body {
+                            margin: 0;
+                            padding: 0;
+                            font-family: Arial, sans-serif;
+                        }
+                        .print-container {
+                            display: grid;
+                            grid-template-columns: repeat(${columns}, 1fr);
+                            gap: ${gapMm}mm;
+                            width: 100%;
+                            height: auto;
+                            padding: 0;
+                            box-sizing: border-box;
+                        }
+                        .qr-item {
+                            text-align: center;
+                            display: flex;
+                            flex-direction: column;
+                            align-items: center;
+                            justify-content: flex-start;
+                            break-inside: avoid;
+                            padding: ${itemPadding}mm;
+                            box-sizing: border-box;
+                            min-height: 0;
+                            max-width: 100%;
+                        }
+                        .qr-item img {
+                            width: ${qrSizeMm}mm;
+                            height: ${qrSizeMm}mm;
+                            max-width: 100%;
+                            margin-bottom: ${hideText ? '0' : '1mm'};
+                        }
+                        .qr-text {
+                            font-size: ${textSize}pt;
+                            color: black;
+                            word-wrap: break-word;
+                            overflow-wrap: break-word;
+                            word-break: break-word;
+                            hyphens: auto;
+                            line-height: 1.1;
+                            text-align: center;
+                            overflow: visible;
+                            white-space: normal;
+                            ${boldText ? 'font-weight: bold;' : ''}
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="print-container">
+            `;
+
+            qrCodes.forEach(qr => {
+                printContent += `
+                    <div class="qr-item">
+                        <img src="${qr.qr_url || qr.url}" alt="QR Code">
+                        ${hideText ? '' : `<div class="qr-text">${qr.text}</div>`}
+                    </div>
+                `;
+            });
+
+            printContent += `
+                    </div>
+                </body>
+                </html>
+            `;
+
+            printWindow.document.write(printContent);
+            printWindow.document.close();
+            
+            printWindow.onload = function() {
+                printWindow.print();
+                printWindow.close();
+            };
+        }
+
+        function downloadQR(url, filename) {
+            createQRWithText(url, filename).then(dataUrl => {
+                const link = document.createElement('a');
+                link.href = dataUrl;
+                link.download = `qr-${filename.substring(0, 20)}.png`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
+        }
+
+        function createQRWithText(qrUrl, text) {
+            return new Promise((resolve) => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const img = new Image();
+                
+                img.crossOrigin = 'anonymous';
+                img.onload = function() {
+                    const qrSize = 300;
+                    const textHeight = 40;
+                    const padding = 20;
+                    
+                    canvas.width = qrSize + (padding * 2);
+                    canvas.height = qrSize + textHeight + (padding * 3);
+                    
+                    ctx.fillStyle = 'white';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    
+                    ctx.drawImage(img, padding, padding, qrSize, qrSize);
+                    
+                    ctx.fillStyle = 'black';
+                    ctx.font = '16px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    
+                    const maxWidth = qrSize;
+                    const words = text.split(' ');
+                    let line = '';
+                    let y = qrSize + padding * 2 + 10;
+                    
+                    for (let n = 0; n < words.length; n++) {
+                        const testLine = line + words[n] + ' ';
+                        const metrics = ctx.measureText(testLine);
+                        const testWidth = metrics.width;
+                        
+                        if (testWidth > maxWidth && n > 0) {
+                            ctx.fillText(line, canvas.width / 2, y);
+                            line = words[n] + ' ';
+                            y += 20;
+                        } else {
+                            line = testLine;
+                        }
+                    }
+                    ctx.fillText(line, canvas.width / 2, y);
+                    
+                    resolve(canvas.toDataURL('image/png'));
+                };
+                
+                img.src = qrUrl;
+            });
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

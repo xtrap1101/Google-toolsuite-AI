@@ -1,0 +1,12 @@
+<!-- navbar.html - Navbar chuẩn dùng chung cho mọi trang -->
+<nav class="navbar">
+    <div class="d-flex" style="justify-content: space-between; align-items: center; width: 100%;">
+        <a href="/" class="navbar-brand">🚀 Google Tools Suite</a>
+        <ul class="navbar-nav">
+            <li><a href="/" class="nav-link{% if active_page == 'home' %} active{% endif %}">🏠 Trang chủ</a></li>
+            <li><a href="/trends" class="nav-link{% if active_page == 'trends' %} active{% endif %}">📈 Google Trends</a></li>
+            <li><a href="/qr" class="nav-link{% if active_page == 'qr' %} active{% endif %}">🖨️ QR Generator</a></li>
+            <li><a href="/copy" class="nav-link{% if active_page == 'copy' %} active{% endif %}">☁️ Drive Manager</a></li>
+        </ul>
+    </div>
+</nav>

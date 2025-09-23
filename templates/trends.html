@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Trends Analyzer - Phân tích xu hướng tìm kiếm</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    {% set active_page = 'trends' %}
+{% include 'navbar.html' %}
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container text-center">
+            <h1 class="display-4 fw-bold mb-3">
+                <i class="fas fa-chart-line me-3"></i>Google Trends Analyzer
+            </h1>
+            <p class="lead">Phân tích xu hướng tìm kiếm trên Google với biểu đồ trực quan</p>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <div class="container my-5">
+        <!-- Input Form -->
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-search me-2"></i>Nhập từ khóa để phân tích
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="trendsForm">
+                            <div class="mb-3">
+                                <label for="keywords" class="form-label">Từ khóa (cách nhau bằng dấu phẩy)</label>
+                                <textarea class="form-control" id="keywords" rows="3" 
+                                    placeholder="Ví dụ: iPhone, Samsung, Xiaomi, Oppo, Vivo"
+                                    required></textarea>
+                                <div class="form-text">Tối đa 5 từ khóa mỗi lần phân tích</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="timeframe" class="form-label">Khoảng thời gian</label>
+                                <select class="form-select" id="timeframe">
+                                    <option value="today 1-m">1 tháng qua</option>
+                                    <option value="today 3-m">3 tháng qua</option>
+                                    <option value="today 12-m" selected>12 tháng qua</option>
+                                    <option value="today 5-y">5 năm qua</option>
+                                    <option value="all">Tất cả thời gian</option>
+                                </select>
+                            </div>
+                            
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-chart-line me-2"></i>Phân tích xu hướng
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading -->
+        <div class="loading text-center my-5">
+            <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                <span class="visually-hidden">Đang xử lý...</span>
+            </div>
+            <p class="mt-3">Đang phân tích dữ liệu Google Trends...</p>
+        </div>
+
+        <!-- Results Section -->
+        <div class="results-section">
+            <!-- Summary Stats -->
+            <div class="row mb-4" id="summaryStats">
+                <!-- Stats cards will be inserted here -->
+            </div>
+
+            <!-- Chart -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-chart-area me-2"></i>Biểu đồ xu hướng
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container" id="chartContainer">
+                                <!-- Chart will be inserted here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Table -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-table me-2"></i>Dữ liệu chi tiết
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive" id="dataTable">
+                                <!-- Data table will be inserted here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Error Alert -->
+        <div class="alert alert-danger d-none" id="errorAlert">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <span id="errorMessage"></span>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('trendsForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const keywords = document.getElementById('keywords').value.trim();
+            const timeframe = document.getElementById('timeframe').value;
+            
+            if (!keywords) {
+                showError('Vui lòng nhập từ khóa');
+                return;
+            }
+            
+            // Show loading
+            document.querySelector('.loading').style.display = 'block';
+            document.querySelector('.results-section').style.display = 'none';
+            document.getElementById('errorAlert').classList.add('d-none');
+            
+            try {
+                const response = await fetch('/trends', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        keywords: keywords,
+                        timeframe: timeframe
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayResults(data);
+                } else {
+                    showError(data.error || 'Có lỗi xảy ra khi xử lý dữ liệu');
+                }
+            } catch (error) {
+                showError('Lỗi kết nối: ' + error.message);
+            } finally {
+                document.querySelector('.loading').style.display = 'none';
+            }
+        });
+        
+        function displayResults(data) {
+            // Display summary stats
+            displaySummaryStats(data.summary, data.keywords);
+            
+            // Display chart
+            if (data.chart_url) {
+                document.getElementById('chartContainer').innerHTML = 
+                    `<img src="${data.chart_url}" class="img-fluid" alt="Google Trends Chart">`;
+            }
+            
+            // Display data table (simplified)
+            displayDataTable(data.data, data.keywords);
+            
+            // Show results section
+            document.querySelector('.results-section').style.display = 'block';
+        }
+        
+        function displaySummaryStats(summary, keywords) {
+            const container = document.getElementById('summaryStats');
+            container.innerHTML = '';
+            
+            keywords.forEach(keyword => {
+                const stats = summary[keyword] || {};
+                const hasData = !stats.no_data;
+                
+                const card = document.createElement('div');
+                card.className = 'col-md-6 col-lg-4 mb-3';
+                card.innerHTML = `
+                    <div class="card stats-card">
+                        <div class="card-body text-center">
+                            <h6 class="card-title">${keyword}</h6>
+                            ${hasData ? `
+                                <div class="row">
+                                    <div class="col-4">
+                                        <small>Trung bình</small>
+                                        <div class="fw-bold">${stats.avg || 0}</div>
+                                    </div>
+                                    <div class="col-4">
+                                        <small>Cao nhất</small>
+                                        <div class="fw-bold">${stats.max || 0}</div>
+                                    </div>
+                                    <div class="col-4">
+                                        <small>Thấp nhất</small>
+                                        <div class="fw-bold">${stats.min || 0}</div>
+                                    </div>
+                                </div>
+                            ` : `
+                                <div class="text-warning">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    <br>Không có dữ liệu
+                                </div>
+                            `}
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+        
+        function displayDataTable(data, keywords) {
+            const container = document.getElementById('dataTable');
+            
+            if (!data || Object.keys(data).length === 0) {
+                container.innerHTML = '<p class="text-muted">Không có dữ liệu để hiển thị</p>';
+                return;
+            }
+            
+            // Create a simple summary table
+            let tableHTML = `
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Từ khóa</th>
+                            <th>Trạng thái</th>
+                            <th>Số điểm dữ liệu</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            keywords.forEach(keyword => {
+                const keywordData = data[keyword] || {};
+                const hasData = Object.keys(keywordData).length > 0;
+                
+                tableHTML += `
+                    <tr>
+                        <td><strong>${keyword}</strong></td>
+                        <td>
+                            ${hasData ? 
+                                '<span class="badge bg-success">Có dữ liệu</span>' : 
+                                '<span class="badge bg-warning">Không có dữ liệu</span>'
+                            }
+                        </td>
+                        <td>${hasData ? Object.keys(keywordData).length : 0}</td>
+                    </tr>
+                `;
+            });
+            
+            tableHTML += '</tbody></table>';
+            container.innerHTML = tableHTML;
+        }
+        
+        function showError(message) {
+            document.getElementById('errorMessage').textContent = message;
+            document.getElementById('errorAlert').classList.remove('d-none');
+        }
+    </script>
+</body>
+</html>

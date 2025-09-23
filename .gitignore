@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+*.so
+*.dll
+*.egg-info/
+.eggs/
+build/
+dist/
+.Python
+env/
+venv/
+.venv/
+ENV/
+env.bak/
+pip-wheel-metadata/
+*.log
+
+# OS / Editors
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.code-workspace
+
+# Environment & secrets
+.env
+NID_KEY.txt
+credentials_oauth.json
+credentials_local.json
+# Keep the template for documentation/bootstrapping
+# credentials_oauth_template.json (tracked)
+
+# Project artifacts
+pythonanywhere_upload.zip
+checkpoint-*.zip
+/tmp/
+tmp/
+
+# Node (if ever added)
+node_modules/

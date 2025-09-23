@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+    <html lang="vi">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Google Drive Manager - Quản lý Google Drive</title>
+        <!-- Bootstrap CSS -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    </head>
+    <body>
+        <div class="container py-4">
+            <!-- Navigation Bar -->
+            {% set active_page = 'copy' %}
+    {% include 'navbar.html' %}
+
+            <!-- Header -->
+            <div class="header text-center my-3">
+                <h1><i class="fas fa-cloud"></i> Google Drive Manager</h1>
+            </div>
+
+            <!-- Alert Container -->
+            <div id="alerts"></div>
+
+            <!-- Authentication Status -->
+            <div class="card mb-3">
+                <div class="card-header d-flex align-items-center">
+                    <h3 class="card-title mb-0"><i class="fas fa-user-shield me-2"></i> Trạng thái xác thực</h3>
+                </div>
+                <div class="text-center p-4">
+                    <div id="authStatus">
+                        <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: #667eea;"></i>
+                        <p class="mt-2">Đang kiểm tra trạng thái đăng nhập...</p>
+                    </div>
+                    <div id="authActions" style="display: none;">
+                        <a href="/login" class="btn btn-primary">
+                            <i class="fas fa-sign-in-alt"></i> Đăng nhập Google
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Functions -->
+            <div id="mainFunctions" style="display: none;">
+                <!-- Copy Single File -->
+                <div class="card mb-3">
+                    <div class="card-header d-flex align-items-center">
+                        <h3 class="card-title mb-0"><i class="fas fa-copy me-2"></i> Sao chép File/Folder đơn lẻ</h3>
+                    </div>
+                    
+                    <form id="singleCopyForm" class="p-3">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="sourceId" class="form-label">
+                                        <i class="fas fa-file"></i> Link share File/Folder cần copy
+                                    </label>
+                                    <input type="text" 
+                                        id="sourceId" 
+                                        name="sourceId" 
+                                        class="form-control" 
+                                        placeholder="Nhập link share cần copy"
+                                        required>
+                                    <small class="text-muted">Link file/folder nguồn</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="targetFolderId" class="form-label">
+                                        <i class="fas fa-folder"></i> thư mục lưu cũng copy dạng share
+                                    </label>
+                                    <input type="text" 
+                                        id="targetFolderId" 
+                                        name="targetFolderId" 
+                                        class="form-control" 
+                                        placeholder="Nhập ID thư mục đích">
+                                    <small class="text-muted">Để trống để copy vào ở ngoài cùng drive</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mt-3">
+                            <label for="newName" class="form-label">
+                                <i class="fas fa-edit"></i> Tên mới (tùy chọn)
+                            </label>
+                            <input type="text" 
+                                id="newName" 
+                                name="newName" 
+                                class="form-control" 
+                                placeholder="Để trống để giữ tên gốc">
+                        </div>
+                        
+                        <div class="text-center mt-3">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-copy"></i> Bắt đầu sao chép
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Batch Copy -->
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <h3 class="card-title mb-0"><i class="fas fa-layer-group me-2"></i> Sao chép hàng loạt</h3>
+                                <small class="text-muted">Upload file Excel chứa danh sách các file/folder cần copy</small>
+                            </div>
+                            <a href="#" id="downloadTemplate" class="btn btn-outline-secondary btn-sm">
+                                <i class="fas fa-download"></i> Tải mẫu Excel copy hàng loạt
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <form id="batchCopyForm" enctype="multipart/form-data" class="p-3">
+                        <div class="row g-3">
+                            <div class="col-md-8">
+                                <div class="form-group">
+                                    <label for="batchFile" class="form-label">
+                                        <i class="fas fa-file-excel"></i> File Excel danh sách
+                                    </label>
+                                    <input type="file" 
+                                        id="batchFile" 
+                                        name="batchFile" 
+                                        class="form-control" 
+                                        accept=".xlsx,.xls,.csv"
+                                        required>
+                                    <small class="text-muted">
+                                        File Excel A1 Link file cần copy, B2 Link nơi lưu về, C3 tên muốn lưu (bỏ trống mặc định)
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label class="form-label">Tùy chọn</label>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="skipErrors" name="skipErrors" checked>
+                                        <label class="form-check-label" for="skipErrors">Bỏ qua lỗi và tiếp tục</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center mt-3">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-upload"></i> Upload và bắt đầu
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Progress Tracking -->
+                <div id="progressSection" class="card mb-3" style="display: none;">
+                    <div class="card-header">
+                        <h3 class="card-title mb-0"><i class="fas fa-tasks me-2"></i> Tiến trình xử lý</h3>
+                    </div>
+                    
+                    <div class="p-4">
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span>Tiến độ tổng thể</span>
+                                <span id="progressText">0%</span>
+                            </div>
+                            <div class="progress" style="height: 20px; background: #e9ecef; border-radius: 10px;">
+                                <div id="progressBar" 
+                                    class="progress-bar" 
+                                    style="width: 0%; background: linear-gradient(45deg, #667eea, #764ba2); border-radius: 10px;">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-3">
+                                <h4 id="totalFiles" class="mb-0">0</h4>
+                                <small>Tổng số file</small>
+                            </div>
+                            <div class="col-md-3">
+                                <h4 id="completedFiles" class="mb-0">0</h4>
+                                <small>Đã hoàn thành</small>
+                            </div>
+                            <div class="col-md-3">
+                                <h4 id="errorFiles" class="mb-0">0</h4>
+                                <small>Lỗi</small>
+                            </div>
+                            <div class="col-md-3">
+                                <h4 id="remainingFiles" class="mb-0">0</h4>
+                                <small>Còn lại</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Results -->
+                <div id="resultsSection" class="card" style="display: none;">
+                    <div class="card-header d-flex align-items-center justify-content-between">
+                        <h3 class="card-title mb-0"><i class="fas fa-list me-2"></i> Kết quả chi tiết</h3>
+                        <!-- Đã xóa nút xuất kết quả theo yêu cầu -->
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table id="resultsTable" class="table align-middle">
+                            <thead>
+                                <tr>
+                                    <th>STT</th>
+                                    <th>File nguồn</th>
+                                    <th>Thư mục đích</th>
+                                    <th>Tên mới</th>
+                                    <th>Trạng thái</th>
+                                    <th>Link kết quả</th>
+                                    <th>Ghi chú</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Results will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bootstrap JS -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+
+        <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+        <script>
+            // Check authentication status on page load
+            document.addEventListener('DOMContentLoaded', function() {
+                checkAuthStatus();
+            });
+            
+            async function checkAuthStatus() {
+                try {
+                    const res = await fetch('/session/status');
+                    const data = await res.json();
+                    const isLoggedIn = !!data.logged_in;
+                    
+                    if (isLoggedIn) {
+                        document.getElementById('authStatus').innerHTML = `
+                            <i class="fas fa-check-circle" style="font-size: 2rem; color: #28a745;"></i>
+                            <p class="mt-2">✅ Đã đăng nhập Google Drive${data.user && data.user.displayName ? ` - ${data.user.displayName}` : ''} - Sẵn sàng sử dụng!</p>
+                        `;
+                        document.getElementById('mainFunctions').style.display = 'block';
+                        document.getElementById('authActions').style.display = 'none';
+                    } else {
+                        document.getElementById('authStatus').innerHTML = `
+                            <i class="fas fa-exclamation-triangle" style="font-size: 2rem; color: #ffc107;"></i>
+                            <p class="mt-2">⚠️ Chưa đăng nhập - Cần xác thực để sử dụng chức năng</p>
+                        `;
+                        document.getElementById('authActions').style.display = 'block';
+                        document.getElementById('mainFunctions').style.display = 'none';
+                    }
+                } catch (error) {
+                    console.error('Error checking auth status:', error);
+                    document.getElementById('authStatus').innerHTML = `
+                        <i class="fas fa-exclamation-triangle" style="font-size: 2rem; color: #dc3545;"></i>
+                        <p class="mt-2">Không kiểm tra được trạng thái. Vui lòng thử lại.</p>
+                    `;
+                }
+            }
+            
+            // Single copy form handler
+            document.getElementById('singleCopyForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const formEl = this;
+                const formData = new FormData(this);
+                const data = {
+                    source_id: formData.get('sourceId'),
+                    target_folder_id: formData.get('targetFolderId'),
+                    new_name: formData.get('newName')
+                };
+                
+                if (!data.source_id) {
+                    GoogleToolsSuite.showAlert('Vui lòng nhập ID file/folder nguồn', 'warning');
+                    return;
+                }
+                
+                try {
+                    showProgress(1, 0, 0, 0, 1);
+                    
+                    const response = await GoogleToolsSuite.makeRequest('/copy', 'POST', data);
+                    
+                    if (response.success) {
+                        GoogleToolsSuite.showAlert('Sao chép thành công!', 'success');
+                        showProgress(1, 1, 0, 0, 0);
+                        displaySingleResult(response.data);
+                    } else {
+                        GoogleToolsSuite.showAlert(response.error || 'Có lỗi xảy ra', 'danger');
+                        showProgress(1, 0, 1, 0, 0);
+                    }
+                } catch (error) {
+                    GoogleToolsSuite.showAlert('Lỗi kết nối: ' + error.message, 'danger');
+                    showProgress(1, 0, 1, 0, 0);
+                } finally {
+                    // Khôi phục nút submit để có thể bấm lại
+                    if (window.GoogleToolsSuite && typeof GoogleToolsSuite.restoreSubmitButton === 'function') {
+                        GoogleToolsSuite.restoreSubmitButton(formEl);
+                    }
+                }
+            });
+            
+            // Batch copy form handler (real API)
+            document.getElementById('batchCopyForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const formEl = this;
+                const fileInput = document.getElementById('batchFile');
+                const file = fileInput.files[0];
+                
+                if (!file) {
+                    GoogleToolsSuite.showAlert('Vui lòng chọn file Excel', 'warning');
+                    return;
+                }
+                
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('skip_errors', document.getElementById('skipErrors').checked);
+                
+                try {
+                    GoogleToolsSuite.showAlert('Đang upload và xử lý file...', 'info');
+                    document.getElementById('resultsSection').style.display = 'none';
+                    showProgress(0, 0, 0, 0, 1);
+                    
+                    const res = await fetch('/copy/batch', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    let response;
+                    try {
+                        response = await res.json();
+                    } catch (parseErr) {
+                        const text = await res.text();
+                        GoogleToolsSuite.showAlert('Phản hồi từ server không đúng định dạng JSON.\n' + (text || ''), 'danger');
+                        document.getElementById('progressSection').style.display = 'none';
+                        return;
+                    }
+                    
+                    if (!res.ok || !response.success) {
+                        const msg = response && response.error ? response.error : `Xử lý thất bại (HTTP ${res.status})`;
+                        GoogleToolsSuite.showAlert(msg, 'danger');
+                        document.getElementById('progressSection').style.display = 'none';
+                        return;
+                    }
+                    
+                    const total = (response.summary && response.summary.total) || (response.results ? response.results.length : 0) || 0;
+                    const successCount = (response.summary && response.summary.success) || (response.results ? response.results.filter(r => r.status === 'success').length : 0);
+                    const errorCount = (response.summary && response.summary.error) || (response.results ? response.results.filter(r => r.status === 'error').length : 0);
+                    showProgress(total, successCount, errorCount, 0, 0);
+                    
+                    renderBatchResults(response.results || []);
+                    GoogleToolsSuite.showAlert(`Hoàn thành! ${successCount} thành công, ${errorCount} lỗi`, errorCount ? 'warning' : 'success');
+                } catch (error) {
+                    GoogleToolsSuite.showAlert('Lỗi upload/xử lý file: ' + error.message, 'danger');
+                    document.getElementById('progressSection').style.display = 'none';
+                } finally {
+                    // Khôi phục nút submit để có thể bấm lại
+                    if (window.GoogleToolsSuite && typeof GoogleToolsSuite.restoreSubmitButton === 'function') {
+                        GoogleToolsSuite.restoreSubmitButton(formEl);
+                    }
+                }
+            });
+            
+            function showProgress(total, completed, errors, remaining, inProgress) {
+                const progressSection = document.getElementById('progressSection');
+                progressSection.style.display = 'block';
+                
+                document.getElementById('totalFiles').textContent = total;
+                document.getElementById('completedFiles').textContent = completed;
+                document.getElementById('errorFiles').textContent = errors;
+                document.getElementById('remainingFiles').textContent = remaining;
+                
+                const percentage = total > 0 ? Math.round((completed + errors) / total * 100) : (inProgress ? 5 : 0);
+                document.getElementById('progressText').textContent = percentage + '%';
+                document.getElementById('progressBar').style.width = percentage + '%';
+            }
+            
+            function displaySingleResult(data) {
+                const resultsSection = document.getElementById('resultsSection');
+                const tbody = document.getElementById('resultsTable').querySelector('tbody');
+                
+                tbody.innerHTML = `
+                    <tr>
+                        <td>1</td>
+                        <td>${(data && (data.source_name || data.source_id)) || 'N/A'}</td>
+                        <td>${data && (data.target_folder_name || data.target_folder_id || 'Root')}</td>
+                        <td>${data && (data.new_name || data.source_name) || 'N/A'}</td>
+                        <td><span class="badge bg-success">Thành công</span></td>
+                        <td>${data.result_url ? `<a href="${data.result_url}" target="_blank">Mở</a>` : '—'}</td>
+                        <td>${data.message || 'Sao chép thành công'}</td>
+                    </tr>
+                `;
+                
+                resultsSection.style.display = 'block';
+            }
+            
+            function renderBatchResults(items) {
+                const resultsSection = document.getElementById('resultsSection');
+                const tbody = document.getElementById('resultsTable').querySelector('tbody');
+                tbody.innerHTML = '';
+                
+                if (!items || !items.length) {
+                    resultsSection.style.display = 'none';
+                    return;
+                }
+                
+                items.forEach((item, idx) => {
+                    const status = item.status || (item.success ? 'success' : 'error');
+                    const data = item.data || {};
+                    const isSuccess = status === 'success';
+                    const link = data.result_url || item.result_url;
+                    const note = item.error || (data && data.message) || (isSuccess ? 'Sao chép thành công' : 'Lỗi');
+                    const source = data.source_name || data.source_id || '—';
+                    const target = data.target_folder_name || data.target_folder_id || 'Root';
+                    const newName = data.new_name || data.name || '—';
+                    
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${idx + 1}</td>
+                        <td>${source}</td>
+                        <td>${target}</td>
+                        <td>${newName}</td>
+                        <td>${isSuccess ? '<span class="badge bg-success">Thành công</span>' : '<span class="badge bg-danger">Lỗi</span>'}</td>
+                        <td>${link ? `<a href="${link}" target="_blank">Mở</a>` : '—'}</td>
+                        <td>${note}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+                
+                resultsSection.style.display = 'block';
+            }
+            
+            // Download template
+            document.getElementById('downloadTemplate').addEventListener('click', function(e) {
+                e.preventDefault();
+                // Điều hướng đến endpoint trả về mẫu CSV
+                window.location.href = '/copy/template';
+            });
+            
+            // Export results
+            // (Đã xóa theo yêu cầu)
+        </script>
+    </body>
+    </html>

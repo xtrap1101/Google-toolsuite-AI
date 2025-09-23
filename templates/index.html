@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Tools Suite - Bộ công cụ Google</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <style>
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .tool-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .tool-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .tool-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .tool-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .tool-description {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .tool-features {
+            list-style: none;
+            margin-bottom: 20px;
+        }
+
+        .tool-features li {
+            padding: 5px 0;
+            color: #555;
+        }
+
+        .tool-features li:before {
+            content: "✓ ";
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        .auth-section {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        .auth-section h3 {
+            color: white;
+            margin-bottom: 15px;
+        }
+
+        .auth-status {
+            color: white;
+            margin-bottom: 15px;
+        }
+
+        .footer {
+            text-align: center;
+            color: rgba(255,255,255,0.8);
+            margin-top: 50px;
+        }
+
+        .qr-icon { color: #FF6B6B; }
+        .trends-icon { color: #4ECDC4; }
+        .drive-icon { color: #45B7D1; }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .tools-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .tool-card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Navigation Bar -->
+        {% set active_page = 'home' %}
+        {% include 'navbar.html' %}
+
+        <div class="header">
+            <h1>🚀 Google Tools Suite</h1>
+            <p>Bộ công cụ mạnh mẽ cho Google Drive, QR Code và Trends Analysis</p>
+        </div>
+
+        <div class="auth-section">
+            <h3>🔐 Trạng thái đăng nhập</h3>
+            {% if logged_in %}
+                <div class="auth-status">
+                    ✅ Đã đăng nhập Google - Sẵn sàng sử dụng tất cả tính năng!
+                </div>
+                <a href="/logout" class="btn">Đăng xuất</a>
+            {% else %}
+                <div class="auth-status">
+                    ⚠️ Chưa đăng nhập - Một số tính năng cần quyền truy cập Google
+                </div>
+                <a href="/login" class="btn">Đăng nhập Google</a>
+            {% endif %}
+        </div>
+
+        <div class="tools-grid">
+            <!-- QR Code Generator -->
+            <a href="/qr" class="tool-card">
+                <div class="tool-icon qr-icon">🖨️</div>
+                <div class="tool-title">QR Code Generator</div>
+                <div class="tool-description">
+                    Tạo mã QR chuyên nghiệp với nhiều tùy chọn tùy chỉnh
+                </div>
+                <ul class="tool-features">
+                    <li>Tạo QR code đơn lẻ</li>
+                    <li>Upload Excel tạo hàng loạt</li>
+                    <li>Download với text bên dưới</li>
+                    <li>Tùy chỉnh kích thước và màu sắc</li>
+                </ul>
+                <div class="btn">Bắt đầu tạo QR →</div>
+            </a>
+
+            <!-- Google Trends Analyzer -->
+            <a href="/trends" class="tool-card">
+                <div class="tool-icon trends-icon">📈</div>
+                <div class="tool-title">Google Trends Analyzer</div>
+                <div class="tool-description">
+                    Phân tích xu hướng tìm kiếm Google với dữ liệu chi tiết
+                </div>
+                <ul class="tool-features">
+                    <li>Phân tích từ khóa theo thời gian</li>
+                    <li>So sánh nhiều từ khóa</li>
+                    <li>Xuất dữ liệu ra Google Sheets</li>
+                    <li>Biểu đồ trực quan</li>
+                </ul>
+                <div class="btn">Phân tích Trends →</div>
+            </a>
+
+            <!-- Google Drive Tools -->
+            <a href="/copy" class="tool-card">
+                <div class="tool-icon drive-icon">☁️</div>
+                <div class="tool-title">Google Drive Manager</div>
+                <div class="tool-description">
+                    Quản lý và sao chép files/folders trong Google Drive
+                </div>
+                <ul class="tool-features">
+                    <li>Copy files và folders</li>
+                    <li>Batch copy hàng loạt</li>
+                    <li>Theo dõi tiến trình real-time</li>
+                    <li>Quản lý quyền truy cập</li>
+                </ul>
+                <div class="btn">Quản lý Drive →</div>
+            </a>
+        </div>
+
+        <div class="footer">
+            <p>© 2024 Google Tools Suite - Phát triển bởi AI Assistant</p>
+            <p>Sử dụng Google APIs để cung cấp trải nghiệm tốt nhất</p>
+        </div>
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
