@@ -26,20 +26,30 @@ jobs:
           port: 22
           # The script to execute on the PythonAnywhere server.
           script: |
-            # Go to the project directory
-            cd /home/tongtongtong/mysite
+            # Define paths
+            PROJECT_DIR="/home/tongtongtong/mysite"
+            VENV_DIR="/home/tongtongtong/.virtualenvs/my-cicd-venv"
+
+            # Navigate to project directory
+            cd $PROJECT_DIR
             
-            # Pull the latest changes from the main branch
+            echo ">>> Pulling latest code from GitHub..."
             git pull origin main
             
-            # === VIRTUALENV (Optional) ===
-            # If you use a virtualenv, uncomment the line below to activate it.
-            # Replace 'my-virtualenv' with the name of your virtualenv.
-            # source /home/tongtongtong/.virtualenvs/my-virtualenv/bin/activate
+            # Create virtualenv if it doesn't exist
+            if [ ! -d "$VENV_DIR" ]; then
+              echo ">>> Creating virtualenv at $VENV_DIR..."
+              python3 -m venv $VENV_DIR
+            fi
             
-            # Install/update dependencies
-            pip install -r requirements.txt
+            # Activate virtualenv and install dependencies
+            echo ">>> Activating virtualenv and installing dependencies..."
+            source $VENV_DIR/bin/activate
+            pip install --no-cache-dir -r requirements.txt
+            deactivate
             
             # Reload the web app to apply changes
-            # This command touches the WSGI file, which tells PythonAnywhere to reload the app.
+            echo ">>> Reloading PythonAnywhere web app..."
             touch /var/www/tongtongtong_pythonanywhere_com_wsgi.py
+            
+            echo ">>> Deployment to PythonAnywhere finished successfully!"
