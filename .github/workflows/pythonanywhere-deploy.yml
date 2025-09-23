@@ -1,0 +1,45 @@
+# This is a GitHub Actions workflow that deploys your code to PythonAnywhere.
+# It runs whenever you push to the 'main' branch.
+
+name: Deploy to PythonAnywhere
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Deploy to PythonAnywhere
+        uses: a-h/ssh-action@v1
+        with:
+          # We use the API token as the password for SSH, as supported by PythonAnywhere.
+          host: ssh.pythonanywhere.com
+          username: ${{ secrets.PA_USERNAME }}
+          password: ${{ secrets.PA_API_TOKEN }}
+          port: 22
+          # The script to execute on the PythonAnywhere server.
+          script: |
+            # Go to the project directory
+            cd /home/tongtongtong/mysite
+            
+            # Pull the latest changes from the main branch
+            git pull origin main
+            
+            # === VIRTUALENV (Optional) ===
+            # If you use a virtualenv, uncomment the line below to activate it.
+            # Replace 'my-virtualenv' with the name of your virtualenv.
+            # source /home/tongtongtong/.virtualenvs/my-virtualenv/bin/activate
+            
+            # Install/update dependencies
+            pip install -r requirements.txt
+            
+            # Reload the web app to apply changes
+            # This command touches the WSGI file, which tells PythonAnywhere to reload the app.
+            touch /var/www/tongtongtong_pythonanywhere_com_wsgi.py
