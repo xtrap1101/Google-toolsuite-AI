@@ -4,7 +4,7 @@
 set -e
 
 # Define project directory and navigate into it
-PROJECT_DIR="/home/tongtongtong/Google-toolsuite-AI"
+PROJECT_DIR="/home/tongtongtong/mysite"
 cd $PROJECT_DIR
 
 # Pull the latest code from the main branch
